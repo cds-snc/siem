@@ -1,4 +1,2 @@
-# .github
+# CDS Security Information and Event Management
 
-This repository provides some base files for setting up a repository at
-CDS.
