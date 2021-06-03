@@ -4,9 +4,9 @@ on:
   # push:
   #  branches: [main]
   pull_request:
-  paths:
-    - "lambdas/**"
-    - ".github/workflows/**"  
+    paths:
+      - "lambdas/**"
+      - ".github/workflows/**"  
 
 env:
   GITHUB_SHA: ${{ github.sha }}
