@@ -11,7 +11,7 @@ on:
 env:
   GITHUB_SHA: ${{ github.sha }}
   REGISTRY: 370045664819.dkr.ecr.ca-central-1.amazonaws.com
-  REPO_NAME : "siem"
+  REPO_NAME : siem
 
 jobs:
   build-and-push:
@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - image: "ip-geolocation"
+          - image: ip-geolocation
 
     runs-on: ubuntu-latest
     steps:

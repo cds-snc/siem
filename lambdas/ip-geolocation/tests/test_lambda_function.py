@@ -92,7 +92,7 @@ def test_download_file_test_url(MockLogger, MockRequest):
         assert lambda_function.download_file("foo")
         MockRequest.get.assert_called_once_with(
             "https://download.maxmind.com/app/geoip_download",
-            {"edition_id": "foo", "license_key": "FOO", "suffix": "tar.tgz"},
+            {"edition_id": "foo", "license_key": "FOO", "suffix": "tar.gz"},
         )
         MockLogger.debug.assert_called_once_with("Downloaded foo")
 
