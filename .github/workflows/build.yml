@@ -41,14 +41,15 @@ jobs:
           -t $REGISTRY/$REPO_NAME/${{ matrix.image }}:$GITHUB_SHA \
           -t $REGISTRY/$REPO_NAME/${{ matrix.image }}:latest . 
 
-      - name: Configure AWS credentials
+      - name: AWS auth with ECR
         if: ${{ steps.filter.outputs.lambda == 'true' }}
-        id: aws-creds
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.ECR_ACCESS_ID }}
-          aws-secret-access-key: ${{ secrets.ECR_ACCESS_KEY }}
-          aws-region: ca-central-1
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.ECR_ACCESS_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_ACCESS_KEY }}
+        run: |
+          aws ecr-public get-login-password --region us-east-1 > /tmp/aws
+          cat /tmp/aws | docker login --username AWS --password-stdin $REGISTRY
+          rm /tmp/aws
 
       - name: Login to ECR
         if: ${{ steps.filter.outputs.lambda == 'true' }}
