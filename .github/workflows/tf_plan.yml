@@ -61,5 +61,5 @@ jobs:
       - name: Terragrunt plan
         id: plan
         run: |
-          cd terragrung/${{ matrix.module }}
+          cd terragrunt/${{ matrix.module }}
           terragrunt plan --terragrunt-non-interactive -no-color
