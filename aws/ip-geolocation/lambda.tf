@@ -3,7 +3,7 @@ resource "aws_lambda_function" "ip_geolocation" {
   function_name = "ip-geolocation"
 
   package_type = "Image"
-  image_uri    = "${aws_ecr_repository.ip_geolocation.repository_url}:latest"
+  image_uri    = "${aws_ecr_repository.ip_geolocation.repository_url}:e15a513a3b479f47c5c2f5e24adfa4119c1e512f"
 
   timeout = 900
 

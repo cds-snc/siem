@@ -60,7 +60,7 @@ def download_file(file):
 
 
 def store_file(file):
-    with tarfile.open(f"/tmp/{file}.tgz" "r:gz") as tar_file:
+    with tarfile.open(f"/tmp/{file}.tgz", "r:gz") as tar_file:
         dir_name = tar_file.getmembers()[0].name
         tar_file.extractall(path="/tmp/")
         mmdb = f"{dir_name}/{file}.mmdb"
