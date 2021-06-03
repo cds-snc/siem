@@ -53,13 +53,11 @@ jobs:
 
       - name: Check Formatting
         id: fmt
-        run: |
-          cd aws/${{ matrix.module }}
-          terragrunt fmt --terragrunt-non-interactive -check -no-color
+        working-directory: ./aws/${{ matrix.module }}
+        run: terragrunt fmt --terragrunt-non-interactive -check -no-color
         continue-on-error: true
 
       - name: Terragrunt plan
         id: plan
-        run: |
-          cd terragrunt/${{ matrix.module }}
-          terragrunt plan --terragrunt-non-interactive -no-color
+        working-directory: ./terragrunt/${{ matrix.module }}
+        run: terragrunt plan --terragrunt-non-interactive -no-color
