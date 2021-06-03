@@ -11,7 +11,7 @@ on:
 env:
   GITHUB_SHA: ${{ github.sha }}
   REGISTRY: 283582579564.dkr.ecr.ca-central-1.amazonaws.com
-  REPO_NAME : "cds-snc/siem-"
+  REPO_NAME : "cds-snc/siem"
 
 jobs:
   build-and-push:
@@ -38,5 +38,5 @@ jobs:
         working-directory: ./lambdas/${{ matrix.image }}
         run: |
           docker build --build-arg branch=$BRANCH --build-arg revision=$GITHUB_SHA \
-          -t $REGISTRY/$REPO_NAME${{ matrix.image }}:$GITHUB_SHA \
-          -t $REGISTRY/$REPO_NAME${{ matrix.image }}:latest . 
+          -t $REGISTRY/$REPO_NAME-${{ matrix.image }}:$GITHUB_SHA \
+          -t $REGISTRY/$REPO_NAME-${{ matrix.image }}:latest . 
