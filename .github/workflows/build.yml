@@ -11,7 +11,7 @@ on:
 env:
   GITHUB_SHA: ${{ github.sha }}
   REGISTRY: public.ecr.aws/cds-snc
-  REPO_NAME : siem
+  REPO_NAME : siem-
 
 jobs:
   build-and-push:
@@ -38,8 +38,8 @@ jobs:
         working-directory: ./lambdas/${{ matrix.image }}
         run: |
           docker build \
-          -t $REGISTRY/$REPO_NAME/${{ matrix.image }}:$GITHUB_SHA \
-          -t $REGISTRY/$REPO_NAME/${{ matrix.image }}:latest . 
+          -t $REGISTRY/$REPO_NAME-${{ matrix.image }}:$GITHUB_SHA \
+          -t $REGISTRY/$REPO_NAME-${{ matrix.image }}:latest . 
 
       - name: AWS auth with ECR
         if: ${{ steps.filter.outputs.lambda == 'true' }}
@@ -54,8 +54,8 @@ jobs:
       - name: Push containers to ECR
         if: ${{ steps.filter.outputs.lambda == 'true' }}
         run: |
-          docker push $REGISTRY/$REPO_NAME/${{ matrix.image }}:$GITHUB_SHA
-          docker push $REGISTRY/$REPO_NAME/${{ matrix.image }}:latest
+          docker push $REGISTRY/$REPO_NAME-${{ matrix.image }}:$GITHUB_SHA
+          docker push $REGISTRY/$REPO_NAME-${{ matrix.image }}:latest
 
       - name: Logout of Amazon ECR
         if: ${{ steps.filter.outputs.lambda == 'true' }}
