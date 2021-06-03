@@ -11,7 +11,7 @@ on:
 env:
   GITHUB_SHA: ${{ github.sha }}
   REGISTRY: public.ecr.aws/cds-snc
-  REPO_NAME : siem-
+  REPO_NAME : siem
 
 jobs:
   build-and-push:
