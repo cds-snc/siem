@@ -55,4 +55,18 @@ data "aws_iam_policy_document" "ip_geolocation_policies" {
     ]
 
   }
+
+  statement {
+
+    effect = "Allow"
+
+    actions = [
+      "ecr:GetDownloadUrlForlayer",
+      "ecr:BatchGetImage"
+    ]
+    resources = [
+      aws_ecr_repository.ip_geolocation.arn
+    ]
+  }
+
 }
