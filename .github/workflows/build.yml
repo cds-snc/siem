@@ -51,11 +51,6 @@ jobs:
           cat /tmp/aws | docker login --username AWS --password-stdin $REGISTRY
           rm /tmp/aws
 
-      - name: Login to ECR
-        if: ${{ steps.filter.outputs.lambda == 'true' }}
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
       - name: Push containers to ECR
         if: ${{ steps.filter.outputs.lambda == 'true' }}
         run: |
