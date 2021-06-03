@@ -1,0 +1,65 @@
+name: Build and Push Container to ECR
+
+on:
+  # push:
+  #  branches: [main]
+  pull_request:
+  paths:
+    - "lambdas/**"
+    - ".github/workflows/**"  
+
+env:
+  GITHUB_SHA: ${{ github.sha }}
+  REGISTRY: 283582579564.dkr.ecr.ca-central-1.amazonaws.com
+  REPO_NAME : "cds-snc/siem-"
+
+jobs:
+  build-and-push:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: "ip-geolocations"
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: dorny/paths-filter@v2.2.1
+        id: filter
+        with:
+          filters: |
+            lambda:
+              - 'lambdas/${{ matrix.image }}/**'
+
+      - name: Build container
+        if: ${{ steps.filter.outputs.lambda == 'true' }}
+        run: |
+          docker build --build-arg branch=$BRANCH --build-arg revision=$GITHUB_SHA \
+          -t $REGISTRY/$REPO_NAME${{ matrix.image }}:$GITHUB_SHA \
+          -t $REGISTRY/$REPO_NAME${{ matrix.image }}:latest .
+
+      - name: Configure AWS credentials
+        if: ${{ steps.filter.outputs.lambda == 'true' }}
+        id: aws-creds
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets[format('{0}_AWS_ACCESS_KEY_ID', matrix.environment)] }}
+          aws-secret-access-key: ${{ secrets[format('{0}_AWS_SECRET_ACCESS_KEY', matrix.environment)] }}
+          aws-region: ca-central-1
+
+      - name: Login to ECR
+        if: ${{ steps.filter.outputs.lambda == 'true' }}
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Push containers to ECR
+        if: ${{ steps.filter.outputs.lambda == 'true' }}
+        run: |
+          docker push $REGISTRY/$REPO_NAME${{ matrix.image }}:$GITHUB_SHA
+          docker push $REGISTRY/$REPO_NAME${{ matrix.image }}:latest
+
+      - name: Logout of Amazon ECR
+        if: ${{ steps.filter.outputs.lambda == 'true' }}
+        run: docker logout ${{ steps.login-ecr.outputs.registry }}
