@@ -54,7 +54,7 @@ jobs:
       - name: Check Formatting
         id: fmt
         working-directory: ./aws/${{ matrix.module }}
-        run: terragrunt fmt --terragrunt-non-interactive -check -no-color
+        run: terraform fmt
         continue-on-error: true
 
       - name: Terragrunt plan
