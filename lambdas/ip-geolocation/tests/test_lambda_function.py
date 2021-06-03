@@ -22,27 +22,7 @@ def test_handler_missing_s3_destination(MockLogger):
 @patch("lambda_function.MAXMIND_KEY", "FOO")
 @patch("lambda_function.S3_DESTINATION", "FOO")
 def test_handler_no_files():
-    assert lambda_function.handler("", "") is False
-
-
-@patch("lambda_function.MAXMIND_KEY", "FOO")
-@patch("lambda_function.S3_DESTINATION", "FOO")
-@patch("lambda_function.download_file")
-@patch("lambda_function.store_file")
-def test_handler_bad_download(MockStore, MockDownload):
-    MockDownload.return_value = False
-    MockStore.return_value = True
-    assert lambda_function.handler("", "") is False
-
-
-@patch("lambda_function.MAXMIND_KEY", "FOO")
-@patch("lambda_function.S3_DESTINATION", "FOO")
-@patch("lambda_function.download_file")
-@patch("lambda_function.store_file")
-def test_handler_bad_store(MockStore, MockDownload):
-    MockDownload.return_value = True
-    MockStore.return_value = False
-    assert lambda_function.handler("", "") is False
+    assert lambda_function.handler("", "") is True
 
 
 @patch("lambda_function.MAXMIND_KEY", "FOO")

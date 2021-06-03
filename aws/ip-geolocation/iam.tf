@@ -70,3 +70,14 @@ data "aws_iam_policy_document" "ip_geolocation_policies" {
   }
 
 }
+
+resource "aws_iam_policy" "ip_geolocation" {
+  name   = "siem-ip-geolocation"
+  path   = "/"
+  policy = data.aws_iam_policy_document.ip_geolocation_policies.json
+}
+
+resource "aws_iam_role_policy_attachment" "ip_geolocation" {
+  role       = aws_iam_role.ip_geolocation.name
+  policy_arn = aws_iam_policy.ip_geolocation.arn
+}

@@ -31,7 +31,9 @@ def handler(_event, _context):
 
     try:
         for file in FILES:
-            return download_file(file) and store_file(file)
+            download_file(file) 
+            store_file(file)
+        return True
     except Exception as exception:
         logger.error(f"{exception}")
 
