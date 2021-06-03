@@ -1,0 +1,65 @@
+name: Terraform plan
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "aws/**"
+      - "terragrunt/**"
+      - ".github/workflows/**"  
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: ca-central-1
+  GITHUB_SHA: ${{ github.sha }}
+  TERRAFORM_VERSION: 0.14.2
+  TERRAGRUNT_VERSION: v0.29.2
+  TF_VAR_maxmind_key: ${{ secrets.MAXMIND_KEY}}
+
+jobs:
+  terraform-plan:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - module: siem.ip-geolocation
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: dorny/paths-filter@v2.2.1
+        id: filter
+        with:
+          filters: |
+            module:
+              - 'aws/${{ matrix.module }}/**'
+              - 'terragrunt/${{ matrix.module }}/**'
+
+      - name: Setup Terraform
+        if: ${{ steps.filter.outputs.module == 'true' }}
+        uses: hashicorp/setup-terraform@v1.2.1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: Setup Terragrunt
+        if: ${{ steps.filter.outputs.module == 'true' }}
+        run: |
+          mkdir bin
+          wget -O bin/terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/$TERRAGRUNT_VERSION/terragrunt_linux_amd64
+          chmod +x bin/*
+          echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+
+      - name: Check Formatting
+        id: fmt
+        run: |
+          cd aws/${{ matrix.module }}
+          terragrunt fmt --terragrunt-non-interactive -check -no-color
+        continue-on-error: true
+
+      - name: Terragrunt plan
+        id: plan
+        run: |
+          cd terragrung/${{ matrix.module }}
+          terragrunt plan --terragrunt-non-interactive -no-color
