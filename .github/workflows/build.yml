@@ -3,10 +3,7 @@ name: Build and Push Container to ECR
 on:
   push:
     branches: [main]
-  pull_request:
-    paths:
-      - "lambdas/**"
-      - ".github/workflows/**"  
+
 env:
   GITHUB_SHA: ${{ github.sha }}
   REGISTRY: 370045664819.dkr.ecr.ca-central-1.amazonaws.com
