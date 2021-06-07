@@ -7,5 +7,5 @@ include {
 }
 
 inputs = {
-  account_id = 370045664819
+  account_id = get_aws_account_id()
 }
