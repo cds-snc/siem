@@ -21,6 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - module: siem/elasticsearch
           - module: siem/ip-geolocation
 
     runs-on: ubuntu-latest

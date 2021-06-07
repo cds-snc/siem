@@ -1,5 +1,5 @@
 terraform {
-  source = "../../../aws/siem//ip-geolocation"
+  source = "../../../aws/siem//elasticsearch"
 }
 
 include {

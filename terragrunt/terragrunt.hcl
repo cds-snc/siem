@@ -6,6 +6,7 @@ locals {
 # DO NOT CHANGE ANYTHING BELOW HERE UNLESS YOU KNOW WHAT YOU ARE DOING
 
 inputs = {
+  caller_arn   = get_aws_caller_identity_arn()
   env          = local.env
   product_name = local.product_name
   region       = "ca-central-1"
@@ -34,6 +35,11 @@ generate "common_variables" {
   contents  = <<EOF
 variable account_id {
   description = "(Required) The account ID to perform actions on."
+  type        = string
+}
+
+variable caller_arn {
+  description = "(Required) The caller's ARN."
   type        = string
 }
 
