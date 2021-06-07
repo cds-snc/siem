@@ -92,7 +92,7 @@ data "aws_iam_policy_document" "cds_siem_access_policy" {
       variable = "aws:SourceIp"
 
       values = [
-        "23.233.63.70/32",
+        "0.0.0.0/0",
       ]
     }
   }
