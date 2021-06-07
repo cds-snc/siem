@@ -54,12 +54,14 @@ jobs:
           echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
 
       - name: Check Formatting
+        if: ${{ steps.filter.outputs.module == 'true' }}
         id: fmt
         working-directory: ./aws/${{ matrix.module }}
         run: terraform fmt
         continue-on-error: true
 
       - name: Terragrunt plan
+        if: ${{ steps.filter.outputs.module == 'true' }}
         id: plan
         working-directory: ./terragrunt/${{ matrix.module }}
         run: terragrunt plan --terragrunt-non-interactive -no-color
