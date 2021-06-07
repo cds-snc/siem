@@ -12,7 +12,7 @@ data "aws_iam_policy_document" "service_principal" {
 }
 
 resource "aws_iam_role" "ip_geolocation" {
-  name               = "siem-ip-geolocation"
+  name               = "cds-siem-ip-geolocation"
   assume_role_policy = data.aws_iam_policy_document.service_principal.json
 }
 
@@ -72,7 +72,7 @@ data "aws_iam_policy_document" "ip_geolocation_policies" {
 }
 
 resource "aws_iam_policy" "ip_geolocation" {
-  name   = "siem-ip-geolocation"
+  name   = "cds-siem-ip-geolocation"
   path   = "/"
   policy = data.aws_iam_policy_document.ip_geolocation_policies.json
 }
