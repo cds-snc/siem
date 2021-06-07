@@ -22,6 +22,7 @@ jobs:
       matrix:
         include:
           - module: siem/elasticsearch
+          - module: siem/elasticsearch_loader
           - module: siem/ip-geolocation
 
     runs-on: ubuntu-latest

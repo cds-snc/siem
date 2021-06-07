@@ -16,6 +16,7 @@ jobs:
       matrix:
         include:
           - image: ip-geolocation
+          - image: loader
 
     runs-on: ubuntu-latest
     steps:

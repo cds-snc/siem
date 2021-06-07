@@ -1,0 +1,8 @@
+# Ignore everything
+**
+
+# Allow files and directories
+!/entry.sh
+!/lambda_function.py
+!/requirements.txt
+!/siem/**
