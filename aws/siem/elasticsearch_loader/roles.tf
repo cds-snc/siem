@@ -16,6 +16,14 @@ resource "elasticsearch_opendistro_roles_mapping" "map_security_manager_role" {
   ]
 }
 
+resource "elasticsearch_opendistro_roles_mapping" "map_manage_snapshots_role" {
+  role_name   = "manage_snapshots"
+  description = "Mapping AWS IAM roles to ES manage_snapshots role"
+  backend_roles = [
+    aws_iam_role.cds_siem_snapshot_role.arn
+  ]
+}
+
 resource "elasticsearch_opendistro_role" "cds_siem_loader" {
   role_name   = "cds_siem_loader"
   description = "Loads logs"

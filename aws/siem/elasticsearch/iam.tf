@@ -12,6 +12,16 @@ data "aws_iam_policy_document" "cds_siem_admin_role_inline" {
       "arn:aws:es:${var.region}:${var.account_id}:domain/cds-siem/*"
     ]
   }
+
+  statement {
+    sid = "2"
+
+    actions = ["iam:PassRole"]
+
+    resources = [
+      "arn:aws:iam::${var.account_id}:role/cds-siem-snapshot-role"
+    ]
+  }
 }
 
 data "aws_iam_policy_document" "cds_siem_admin_role_assume" {
