@@ -23,4 +23,5 @@ inputs = {
   cds_siem_admin_role_arn = dependency.elasticsearch.outputs.cds_siem_admin_role_arn
   es_endpoint = dependency.elasticsearch.outputs.es_endpoint
   ip_geolocation_bucket_arn = dependency.ip_geolocation.outputs.ip_geolocation_bucket_arn
+  ip_geolocation_bucket = dependency.ip_geolocation.outputs.ip_geolocation_bucket
 }

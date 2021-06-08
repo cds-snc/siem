@@ -68,6 +68,18 @@ data "aws_iam_policy_document" "cds_siem_loader_role_inline" {
       "arn:aws:es:${var.region}:${var.account_id}:domain/cds-siem/*"
     ]
   }
+
+  statement {
+    sid = "4"
+
+    actions = ["sqs:SendMessage", "sqs:ReceiveMessage",
+    "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
+
+    resources = [
+      aws_sqs_queue.cds_siem_dead_letter_queue.arn,
+      aws_sqs_queue.cds_siem_split_logs.arn
+    ]
+  }
 }
 
 data "aws_iam_policy_document" "cds_siem_loader_role_assume" {

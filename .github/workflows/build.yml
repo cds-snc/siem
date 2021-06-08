@@ -3,6 +3,11 @@ name: Build and Push Container to ECR
 on:
   push:
     branches: [main]
+  pull_request:
+    paths:
+      - "aws/**"
+      - "terragrunt/**"
+      - ".github/workflows/**"  
 
 env:
   GITHUB_SHA: ${{ github.sha }}

@@ -17,6 +17,11 @@ variable "ip_geolocation_bucket_arn" {
   description = "IP Geolocation ARN"
 }
 
+variable "ip_geolocation_bucket" {
+  type        = string
+  description = "IP Geolocation name"
+}
+
 variable "rollover_indexes" {
   type        = list(string)
   description = "List of indexes that should be rolled over at 100 GB"
