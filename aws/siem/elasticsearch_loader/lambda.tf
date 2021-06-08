@@ -2,7 +2,7 @@ resource "aws_lambda_function" "loader" {
   function_name = "loader"
 
   package_type = "Image"
-  image_uri    = "${aws_ecr_repository.loader.repository_url}:262b366c259f7d420032f47eef4d37129811b76a"
+  image_uri    = "${aws_ecr_repository.loader.repository_url}:18fd6ebde91d79586b730e72d882a49fc95080cd"
 
   timeout = 900
 
@@ -12,10 +12,13 @@ resource "aws_lambda_function" "loader" {
 
   environment {
     variables = {
-      ES_ENDPOINT           = var.es_endpoint
-      LOG_LEVEL             = "info"
-      GEOIP_BUCKET          = var.ip_geolocation_bucket
-      SQS_SPLITTED_LOGS_URL = aws_sqs_queue.cds_siem_split_logs.arn
+      ES_ENDPOINT                  = var.es_endpoint
+      LOG_LEVEL                    = "info"
+      GEOIP_BUCKET                 = var.ip_geolocation_bucket
+      POWERTOOLS_LOGGER_LOG_EVENT  = "false",
+      POWERTOOLS_SERVICE_NAME      = "es-loader",
+      POWERTOOLS_METRICS_NAMESPACE = "SIEM"
+      SQS_SPLITTED_LOGS_URL        = data.aws_sqs_queue.cds_siem_split_logs.url
     }
   }
 }

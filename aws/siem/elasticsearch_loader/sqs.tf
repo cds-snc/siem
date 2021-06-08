@@ -1,7 +1,11 @@
 resource "aws_sqs_queue" "cds_siem_dead_letter_queue" {
-  name                      = "cds-siem-dead-letter-queue"
-  message_retention_seconds = 1209600
+  name                       = "cds-siem-dead-letter-queue"
+  message_retention_seconds  = 1209600
   visibility_timeout_seconds = 900
+}
+
+data "aws_sqs_queue" "cds_siem_dead_letter_queue" {
+  name = "cds-siem-dead-letter-queue"
 }
 
 resource "aws_sqs_queue" "cds_siem_split_logs" {
@@ -12,4 +16,8 @@ resource "aws_sqs_queue" "cds_siem_split_logs" {
     maxReceiveCount     = 2
   })
   visibility_timeout_seconds = 900
+}
+
+data "aws_sqs_queue" "cds_siem_split_logs" {
+  name = "cds-siem-split_logs"
 }

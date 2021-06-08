@@ -33,3 +33,11 @@ resource "elasticsearch_opendistro_role" "cds_siem_loader" {
     allowed_actions = ["crud", "create_index"]
   }
 }
+
+resource "elasticsearch_opendistro_roles_mapping" "map_cds_siem_loader_role" {
+  role_name   = "cds_siem_loader"
+  description = "Mapping AWS IAM roles to ES cds_siem_loader role"
+  backend_roles = [
+    aws_iam_role.cds_siem_loader_role.arn,
+  ]
+}
