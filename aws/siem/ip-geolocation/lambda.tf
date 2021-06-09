@@ -1,4 +1,3 @@
-
 resource "aws_lambda_function" "ip_geolocation" {
   function_name = "ip-geolocation"
 
