@@ -2,8 +2,7 @@ resource "elasticsearch_opendistro_roles_mapping" "map_all_access_role" {
   role_name   = "all_access"
   description = "Mapping AWS IAM roles to ES all_access role"
   backend_roles = [
-    var.cds_siem_admin_role_arn,
-    "arn:aws:iam::370045664819:role/aws-reserved/sso.amazonaws.com/ca-central-1/AWSReservedSSO_AdministratorAccess_158d226c84e5830a"
+    var.cds_siem_admin_role_arn
   ]
 }
 
@@ -11,8 +10,7 @@ resource "elasticsearch_opendistro_roles_mapping" "map_security_manager_role" {
   role_name   = "security_manager"
   description = "Mapping AWS IAM roles to ES security_manager role"
   backend_roles = [
-    var.cds_siem_admin_role_arn,
-    "arn:aws:iam::370045664819:role/aws-reserved/sso.amazonaws.com/ca-central-1/AWSReservedSSO_AdministratorAccess_158d226c84e5830a"
+    var.cds_siem_admin_role_arn
   ]
 }
 

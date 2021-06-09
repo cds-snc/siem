@@ -3,10 +3,6 @@
 ###
 
 resource "aws_s3_bucket" "cds_siem_logs" {
-
-  # Don't need to version these they should expire and are ephemeral
-  # tfsec:ignore:AWS077
-
   bucket = "cds-siem-${var.env}-${var.account_id}-logs"
   acl    = "private"
   server_side_encryption_configuration {
@@ -30,10 +26,6 @@ resource "aws_s3_bucket" "cds_siem_logs" {
 ###
 
 resource "aws_s3_bucket" "cds_siem_snapshots" {
-
-  # Don't need to version these they should expire and are ephemeral
-  # tfsec:ignore:AWS077
-
   bucket = "cds-siem-${var.env}-${var.account_id}-snapshots"
   acl    = "private"
   server_side_encryption_configuration {
