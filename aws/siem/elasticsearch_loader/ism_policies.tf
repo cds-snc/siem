@@ -25,6 +25,9 @@ resource "elasticsearch_opendistro_ism_policy" "rollover_100gb" {
    }
 }
 EOF
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 resource "elasticsearch_index_template" "rollover_indexes" {

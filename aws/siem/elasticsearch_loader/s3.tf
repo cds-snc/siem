@@ -5,6 +5,9 @@
 resource "aws_s3_bucket" "cds_siem_logs" {
   bucket = "cds-siem-${var.env}-${var.account_id}-logs"
   acl    = "private"
+  versioning {
+    enabled = true
+  }
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
