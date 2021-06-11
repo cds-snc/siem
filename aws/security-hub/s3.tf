@@ -16,6 +16,10 @@ resource "aws_s3_bucket" "security_hub_logs" {
       status   = "Enabled"
 
       destination {
+        access_control_translation {
+          owner = "Destination"
+        }
+        account_id    = regex("[0-9]+", var.logs_destination_bucket_id)
         bucket        = var.logs_destination_bucket_arn
         storage_class = "STANDARD"
       }
