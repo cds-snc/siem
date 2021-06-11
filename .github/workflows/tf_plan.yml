@@ -13,6 +13,7 @@ env:
   GITHUB_SHA: ${{ github.sha }}
   TERRAFORM_VERSION: 0.14.2
   TERRAGRUNT_VERSION: v0.29.2
+  TF_VAR_kibana_admin_role: ${{ secrets.KIBANA_ADMIN_ROLE}}
   TF_VAR_maxmind_key: ${{ secrets.MAXMIND_KEY}}
 
 jobs:
