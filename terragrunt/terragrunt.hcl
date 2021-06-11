@@ -18,13 +18,22 @@ generate "provider" {
   contents  = <<EOF
 provider "aws" {
   region              = var.region
-  allowed_account_ids = [var.account_id]
+  allowed_account_ids = [${get_aws_account_id()}]
 }
 
 provider "aws" {
   alias               = "us-east-1"
   region              = "us-east-1"
-  allowed_account_ids = [var.account_id]
+  allowed_account_ids = [${get_aws_account_id()}]
+}
+
+provider "aws" {
+  alias               = "security-hub"
+  region              = "ca-central-1"
+  allowed_account_ids = ["400061975867"]
+  assume_role {
+    role_arn     = "arn:aws:iam::400061975867:role/cds-siem"
+  }
 }
 EOF
 }

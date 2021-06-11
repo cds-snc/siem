@@ -22,6 +22,11 @@ variable "ip_geolocation_bucket" {
   description = "IP Geolocation name"
 }
 
+variable "kibana_admin_role" {
+  type        = string
+  description = "Admin Role for Kibana"
+}
+
 variable "rollover_indexes" {
   type        = list(string)
   description = "List of indexes that should be rolled over at 100 GB"
