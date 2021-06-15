@@ -1,66 +1,37 @@
 ###
-# AWS IAM role - CDS SIEM replication role
+# AWS IAM role - CDS SIEM loader access to GuardDuty Bucket
 ###
 
-data "aws_iam_policy_document" "cds_siem_replication_role_inline" {
+data "aws_iam_policy_document" "cds_siem_guard_duty_access_inline" {
   statement {
     sid = "1"
 
-    actions = [
-      "s3:GetObjectVersionForReplication",
-      "s3:GetObjectVersionAcl",
-      "s3:GetObjectVersionTagging"
-    ]
-    resources = ["${aws_s3_bucket.guard_duty_logs.arn}/*"]
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.guard_duty_logs.arn]
   }
 
   statement {
     sid = "2"
 
-    actions = [
-      "s3:ListBucket",
-      "s3:GetReplicationConfiguration"
-    ]
-    resources = [aws_s3_bucket.guard_duty_logs.arn]
+    actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+    resources = ["${aws_s3_bucket.guard_duty_logs.arn}/*"]
   }
 
   statement {
     sid = "3"
 
-    actions = [
-      "s3:ReplicateObject",
-      "s3:ReplicateDelete",
-      "s3:ReplicateTags",
-      "s3:ObjectOwnerOverrideToBucketOwner"
-    ]
-    resources = ["${var.logs_destination_bucket_arn}/*"]
+    actions   = ["kms:decrypt"]
+    resources = [aws_kms_key.cds_siem_guard_duty_key.arn]
   }
 }
 
-data "aws_iam_policy_document" "cds_siem_replication_role_assume" {
-  statement {
-    sid = "1"
-
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["s3.amazonaws.com"]
-    }
-  }
+resource "aws_iam_policy" "cds_siem_rguard_duty_access_policy" {
+  name     = "cds-siem-guard-duty-access-policy"
+  policy   = data.aws_iam_policy_document.cds_siem_guard_duty_access_inline.json
 }
 
-resource "aws_iam_role" "cds_siem_replication_role" {
-  name               = "cds-siem-replication-guard-duty-role"
-  assume_role_policy = data.aws_iam_policy_document.cds_siem_replication_role_assume.json
-}
-
-resource "aws_iam_policy" "cds_siem_replication_role" {
-  name   = "cds-siem-replication-policy"
-  policy = data.aws_iam_policy_document.cds_siem_replication_role_inline.json
-}
 
 resource "aws_iam_role_policy_attachment" "cds_siem_replication_role" {
-  role       = aws_iam_role.cds_siem_replication_role.name
-  policy_arn = aws_iam_policy.cds_siem_replication_role.arn
+  role       = var.loader_function_role
+  policy_arn = aws_iam_policy.cds_siem_rguard_duty_access_policy.arn
 }
