@@ -30,9 +30,10 @@ data "aws_iam_policy_document" "cds_siem_replication_role_inline" {
     actions = [
       "s3:ReplicateObject",
       "s3:ReplicateDelete",
-      "s3:ReplicateTags"
+      "s3:ReplicateTags",
+      "s3:ObjectOwnerOverrideToBucketOwner"
     ]
-    resources = ["arn:aws:s3:::cds-siem-production-370045664819-logs/*"]
+    resources = ["${var.logs_destination_bucket_arn}/*"]
   }
 }
 

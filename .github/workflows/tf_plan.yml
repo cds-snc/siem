@@ -22,10 +22,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - module: securityhub
+          - module: guard-duty
+          - module: security-hub
           - module: siem/elasticsearch
           - module: siem/elasticsearch_loader
           - module: siem/ip-geolocation
+          - module: siem/s3-replication
 
     runs-on: ubuntu-latest
     steps:
