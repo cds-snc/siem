@@ -27,6 +27,11 @@ variable "kibana_admin_role" {
   description = "Admin Role for Kibana"
 }
 
+variable "landing_zone_prefix" {
+  type        = string
+  description = "The cloudtrail prefix created on landing zone initiation"
+}
+
 variable "rollover_indexes" {
   type        = list(string)
   description = "List of indexes that should be rolled over at 100 GB"
