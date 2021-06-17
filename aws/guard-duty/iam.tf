@@ -26,8 +26,8 @@ data "aws_iam_policy_document" "cds_siem_guard_duty_access_inline" {
 }
 
 resource "aws_iam_policy" "cds_siem_rguard_duty_access_policy" {
-  name     = "cds-siem-guard-duty-access-policy"
-  policy   = data.aws_iam_policy_document.cds_siem_guard_duty_access_inline.json
+  name   = "cds-siem-guard-duty-access-policy"
+  policy = data.aws_iam_policy_document.cds_siem_guard_duty_access_inline.json
 }
 
 

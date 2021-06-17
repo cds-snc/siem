@@ -2,7 +2,7 @@ resource "aws_lambda_function" "loader" {
   function_name = "loader"
 
   package_type = "Image"
-  image_uri    = "${aws_ecr_repository.loader.repository_url}:18fd6ebde91d79586b730e72d882a49fc95080cd"
+  image_uri    = "${aws_ecr_repository.loader.repository_url}:7fed769d3e63180d3aeb9fe041b1611cafe10718"
 
   timeout = 900
 
@@ -54,6 +54,12 @@ resource "aws_s3_bucket_notification" "cds_siem_log_trigger_notification" {
     lambda_function_arn = aws_lambda_function.loader.arn
     events              = ["s3:ObjectCreated:*"]
     filter_prefix       = "UserLogs/"
+  }
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.loader.arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "o-gfiiyvq1tj/"
   }
 
   depends_on = [aws_lambda_permission.cds_siem_log_trigger]

@@ -16,7 +16,7 @@ include {
 }
 
 inputs = {
-  account_id = "400061975867"
+  account_id = get_env("SECURITY_ACCOUNT")
   loader_function_arn = dependency.elasticsearch_loader.outputs.loader_function_arn
   loader_function_name = dependency.elasticsearch_loader.outputs.loader_function_name
   loader_function_role = dependency.elasticsearch_loader.outputs.loader_function_role

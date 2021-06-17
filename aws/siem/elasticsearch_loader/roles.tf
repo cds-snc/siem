@@ -5,6 +5,9 @@ resource "elasticsearch_opendistro_roles_mapping" "map_all_access_role" {
     var.cds_siem_admin_role_arn,
     var.kibana_admin_role
   ]
+  users = [
+    var.kibana_admin_role
+  ]
 }
 
 resource "elasticsearch_opendistro_roles_mapping" "map_security_manager_role" {
@@ -12,6 +15,9 @@ resource "elasticsearch_opendistro_roles_mapping" "map_security_manager_role" {
   description = "Mapping AWS IAM roles to ES security_manager role"
   backend_roles = [
     var.cds_siem_admin_role_arn,
+    var.kibana_admin_role
+  ]
+  users = [
     var.kibana_admin_role
   ]
 }

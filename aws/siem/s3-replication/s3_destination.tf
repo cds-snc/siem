@@ -7,6 +7,7 @@ data "aws_iam_policy_document" "cds_siem_logs_replication_policy" {
     principals {
       type = "AWS"
       identifiers = [
+        var.cloud_trail_replication_role,
         var.security_hub_replication_role
       ]
     }
@@ -20,6 +21,7 @@ data "aws_iam_policy_document" "cds_siem_logs_replication_policy" {
     principals {
       type = "AWS"
       identifiers = [
+        var.cloud_trail_replication_role,
         var.security_hub_replication_role
       ]
     }
