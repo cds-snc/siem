@@ -10,7 +10,6 @@ dependency "elasticsearch_loader" {
   config_path = "../siem/elasticsearch_loader"
 }
 
-
 include {
   path = find_in_parent_folders()
 }
