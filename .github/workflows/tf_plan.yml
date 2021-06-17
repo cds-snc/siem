@@ -16,6 +16,7 @@ env:
   TERRAFORM_VERSION: 0.14.2
   TERRAGRUNT_VERSION: v0.29.2
   TF_VAR_kibana_admin_role: ${{ secrets.KIBANA_ADMIN_ROLE }}
+  TF_VAR_landing_zone_prefix: ${{ secrets.MAXMIND_KEY}}
   TF_VAR_maxmind_key: ${{ secrets.MAXMIND_KEY}}
 
 jobs:
@@ -24,6 +25,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - module: cloud-trail
           - module: guard-duty
           - module: security-hub
           - module: siem/elasticsearch
