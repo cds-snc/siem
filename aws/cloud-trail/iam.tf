@@ -1,0 +1,69 @@
+###
+# AWS IAM role - CDS SIEM replication role
+###
+
+data "aws_iam_policy_document" "cds_siem_replication_role_inline" {
+  statement {
+    sid = "1"
+
+    actions = [
+      "s3:GetObjectVersionForReplication",
+      "s3:GetObjectVersionAcl",
+      "s3:GetObjectVersionTagging"
+    ]
+    resources = ["arn:aws:s3:::aws-landing-zone-logs-${var.account_id}-${var.region}/*"]
+  }
+
+  statement {
+    sid = "2"
+
+    actions = [
+      "s3:ListBucket",
+      "s3:GetReplicationConfiguration"
+    ]
+    resources = ["arn:aws:s3:::aws-landing-zone-logs-${var.account_id}-${var.region}"]
+  }
+
+  statement {
+    sid = "3"
+
+    actions = [
+      "s3:ReplicateObject",
+      "s3:ReplicateDelete",
+      "s3:ReplicateTags",
+      "s3:ObjectOwnerOverrideToBucketOwner"
+    ]
+    resources = ["${var.logs_destination_bucket_arn}/*"]
+  }
+}
+
+data "aws_iam_policy_document" "cds_siem_replication_role_assume" {
+  statement {
+    sid = "1"
+
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["s3.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "cds_siem_replication_role" {
+  provider           = aws.cloud-trail
+  name               = "cds-siem-replication-role"
+  assume_role_policy = data.aws_iam_policy_document.cds_siem_replication_role_assume.json
+}
+
+resource "aws_iam_policy" "cds_siem_replication_role" {
+  provider = aws.cloud-trail
+  name     = "cds-siem-replication-policy"
+  policy   = data.aws_iam_policy_document.cds_siem_replication_role_inline.json
+}
+
+resource "aws_iam_role_policy_attachment" "cds_siem_replication_role" {
+  provider   = aws.cloud-trail
+  role       = aws_iam_role.cds_siem_replication_role.name
+  policy_arn = aws_iam_policy.cds_siem_replication_role.arn
+}

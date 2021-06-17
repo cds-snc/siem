@@ -1,6 +1,8 @@
 locals {
   env          = "production"
+  logging_account = get_env("LOGGING_ACCOUNT")
   product_name = "cds-siem"
+  security_account = get_env("SECURITY_ACCOUNT")
 }
 
 # DO NOT CHANGE ANYTHING BELOW HERE UNLESS YOU KNOW WHAT YOU ARE DOING
@@ -30,9 +32,18 @@ provider "aws" {
 provider "aws" {
   alias               = "security-hub"
   region              = "ca-central-1"
-  allowed_account_ids = ["400061975867"]
+  allowed_account_ids = ["${local.security_account}"]
   assume_role {
-    role_arn     = "arn:aws:iam::400061975867:role/cds-siem"
+    role_arn     = "arn:aws:iam::${local.security_account}:role/cds-siem"
+  }
+}
+
+provider "aws" {
+  alias               = "cloud-trail"
+  region              = "ca-central-1"
+  allowed_account_ids = ["${local.logging_account}"]
+  assume_role {
+    role_arn     = "arn:aws:iam::${local.logging_account}:role/cds-siem"
   }
 }
 EOF

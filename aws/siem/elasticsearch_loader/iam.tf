@@ -49,14 +49,14 @@ data "aws_iam_policy_document" "cds_siem_loader_role_inline" {
     sid = "1"
 
     actions   = ["s3:ListBucket"]
-    resources = [aws_s3_bucket.cds_siem_logs.arn, var.ip_geolocation_bucket_arn]
+    resources = ["arn:aws:s3:::cds-siem-${var.env}-${var.account_id}-*"]
   }
 
   statement {
     sid = "2"
 
     actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-    resources = ["${aws_s3_bucket.cds_siem_logs.arn}/*", "${var.ip_geolocation_bucket_arn}/*"]
+    resources = ["arn:aws:s3:::cds-siem-${var.env}-${var.account_id}-*/*"]
   }
 
   statement {
@@ -79,6 +79,13 @@ data "aws_iam_policy_document" "cds_siem_loader_role_inline" {
       aws_sqs_queue.cds_siem_dead_letter_queue.arn,
       aws_sqs_queue.cds_siem_split_logs.arn
     ]
+  }
+
+  statement {
+    sid = "5"
+
+    actions   = ["kms:decrypt"]
+    resources = ["arn:aws:kms:ca-central-1:${var.account_id}:key/*"]
   }
 }
 

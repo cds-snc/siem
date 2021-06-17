@@ -1,5 +1,5 @@
 terraform {
-  source = "../../aws//security-hub"
+  source = "../../aws//cloud-trail"
 }
 
 dependencies {
@@ -15,7 +15,7 @@ include {
 }
 
 inputs = {
-  account_id = get_env("SECURITY_ACCOUNT")
+  account_id = get_env("LOGGING_ACCOUNT")
   logs_destination_bucket_arn = dependency.elasticsearch_loader.outputs.logs_destination_bucket_arn
   logs_destination_bucket_id = dependency.elasticsearch_loader.outputs.logs_destination_bucket_id
 }
