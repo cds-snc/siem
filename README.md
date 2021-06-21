@@ -1,3 +1,7 @@
+---
+Status: Pre-alpha
+---
+
 # Security Information and Event Management
 
 This repository contains the code required to deploy a Security Information and Event Management (SIEM) system for the [AWS Landing Zone](https://aws.amazon.com/solutions/implementations/aws-landing-zone/). It automatically draws data from the `security` and `logging` accounts set up as part of the Landing Zone products and exposes threat events through ElasticSearch and Kibana.
