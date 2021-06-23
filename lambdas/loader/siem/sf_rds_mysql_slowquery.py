@@ -6,25 +6,23 @@ import re
 from siem import utils
 
 # REGEXP
-RE_DATABASE = re.compile(r'^use ([^ ]*?);')
-RE_QUERY = re.compile(
-    r'^(?!(use|set))[\s\S]*', flags=(re.MULTILINE | re.IGNORECASE))
+RE_DATABASE = re.compile(r"^use ([^ ]*?);")
+RE_QUERY = re.compile(r"^(?!(use|set))[\s\S]*", flags=(re.MULTILINE | re.IGNORECASE))
 
 
 def transform(logdata):
     identifier = utils.cluster_instance_identifier(logdata)
-    logdata['rds']['cluster_identifier'] = identifier['cluster']
-    logdata['rds']['instance_identifier'] = identifier['instance']
-    logdata['rds']['query_time'] = logdata['mysql_query_time']
+    logdata["rds"]["cluster_identifier"] = identifier["cluster"]
+    logdata["rds"]["instance_identifier"] = identifier["instance"]
+    logdata["rds"]["query_time"] = logdata["mysql_query_time"]
 
-    m_db = RE_DATABASE.match(logdata['mysql_query'])
+    m_db = RE_DATABASE.match(logdata["mysql_query"])
     if m_db:
-        logdata['rds']['database_name'] = m_db.group(1)
+        logdata["rds"]["database_name"] = m_db.group(1)
 
-    m_query = RE_QUERY.search(logdata['mysql_query'])
+    m_query = RE_QUERY.search(logdata["mysql_query"])
     if m_query:
-        logdata['rds']['query'] = m_query.group().rstrip(';')
+        logdata["rds"]["query"] = m_query.group().rstrip(";")
 
-    logdata = utils.convert_underscore_field_into_dot_notation(
-        'mysql', logdata)
+    logdata = utils.convert_underscore_field_into_dot_notation("mysql", logdata)
     return logdata
