@@ -1,7 +1,7 @@
 import pytest
 
 from siem import sf_rds_mysql_audit
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 
 @patch("siem.sf_rds_mysql_audit.utils")
