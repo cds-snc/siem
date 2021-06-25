@@ -1,5 +1,3 @@
-import pytest
-
 from siem import sf_rds_mysql_general
 from unittest.mock import patch
 
