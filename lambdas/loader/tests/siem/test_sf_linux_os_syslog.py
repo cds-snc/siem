@@ -128,7 +128,11 @@ def test_transform_sshd_match(MockExtractfromSSHD, MockExtractInstanceId):
     data = {"syslog_message": "", "proc": "sshd"}
     result = sf_linux_os_syslog.transform(data)
     assert MockExtractfromSSHD.called
-    assert result == {'__index_name': 'log-linux-secure', 'proc': 'sshd', 'syslog_message': ''}
+    assert result == {
+        "__index_name": "log-linux-secure",
+        "proc": "sshd",
+        "syslog_message": "",
+    }
 
 
 @patch("siem.sf_linux_os_syslog.extract_instance_id")
@@ -139,7 +143,11 @@ def test_transform_sudo_match(MockExtractfromSudo, MockExtractInstanceId):
     data = {"syslog_message": "", "proc": "sudo"}
     result = sf_linux_os_syslog.transform(data)
     assert MockExtractfromSudo.called
-    assert result == {'__index_name': 'log-linux-secure', 'proc': 'sudo', 'syslog_message': ''}
+    assert result == {
+        "__index_name": "log-linux-secure",
+        "proc": "sudo",
+        "syslog_message": "",
+    }
 
 
 @patch("siem.sf_linux_os_syslog.extract_instance_id")
@@ -147,4 +155,8 @@ def test_transform_su_match(MockExtractInstanceId):
     MockExtractInstanceId.return_value = {}
     data = {"syslog_message": "", "proc": "su"}
     result = sf_linux_os_syslog.transform(data)
-    assert result == {'__index_name': 'log-linux-secure', 'proc': 'su', 'syslog_message': ''}
+    assert result == {
+        "__index_name": "log-linux-secure",
+        "proc": "su",
+        "syslog_message": "",
+    }
