@@ -1,5 +1,4 @@
 from siem import sf_deepsecurity
-from unittest.mock import patch
 
 
 def test_transform_message_too_long():

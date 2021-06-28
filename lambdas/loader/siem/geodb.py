@@ -73,7 +73,6 @@ class GeoDB:
             return False
 
     def _download_geoip_database(self, geoipbucket: str, geodb_name: str) -> bool:
-        geoipbucket = geoipbucket
         localfile = "/tmp/" + geodb_name
         localfile_not_found = "/tmp/not_found_" + geodb_name
         if os.path.isfile(localfile_not_found):
