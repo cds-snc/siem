@@ -9,7 +9,7 @@ from siem import utils
 RE_AUTH_FAILED = re.compile("authentication failed")
 RE_AUTH_SUCCESS = re.compile("connection authorized")
 RE_SESSION_TIME = re.compile(r"disconnection: session time: (\d+):(\d{2}):([\d.]+)")
-RE_STETEMENT = re.compile(r"^statement:\s+(\w+.*)")
+RE_STATEMENT = re.compile(r"^statement:\s+(\w+.*)")
 RE_DURATION = re.compile(
     r"^duration:\s+(?P<duration>[\d.]+)\s+ms"
     r"(\s*(?P<step>(parse|bind|execute))?.*?:\s+(?P<statement>.*))?"
@@ -17,7 +17,7 @@ RE_DURATION = re.compile(
 
 
 def extract_slow_log(logdata):
-    m_statement = RE_STETEMENT.match(logdata["postgresql"]["message"])
+    m_statement = RE_STATEMENT.match(logdata["postgresql"]["message"])
     if m_statement:
         logdata["rds"]["query"] = m_statement.group(1).rstrip(";")
         logdata["postgresql"]["query_step"] = "execute"
