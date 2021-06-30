@@ -3,7 +3,7 @@ import pytest
 import os
 
 from siem import geodb
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
 
 @pytest.fixture(scope="session", autouse=True)

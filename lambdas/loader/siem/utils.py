@@ -79,7 +79,7 @@ def cluster_instance_identifier(logdata):
     try:
         log_group = logdata["@log_group"].split("/")
     except Exception:
-        log_group = [None, None, None, None]
+        log_group = [None, None, None, None, None]
 
     if "rds" not in logdata:
         logdata["rds"] = dict()
@@ -393,7 +393,7 @@ def load_modules_on_memory(etl_config, user_libs):
 
 
 def load_sf_module(logfile, logconfig, user_libs_list):
-    if logconfig["script_ecs"]:
+    if "script_ecs" in logconfig:
         mod_name = "sf_" + logfile.logtype.replace("-", "_")
         # old_mod_name is for compatibility
         old_mod_name = "sf_" + logfile.logtype
