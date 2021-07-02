@@ -2,7 +2,11 @@ import re
 import base64
 import json
 import ipaddress
-from siem import merge, put_value_into_dict, get_value_from_dict
+from siem.utils import (
+    merge_dicts,
+    put_value_into_nesteddict,
+    value_from_nesteddict_by_dottedkeylist,
+)
 
 
 def transform(logdata):
@@ -62,15 +66,15 @@ def transform(logdata):
 
     for ecs_key in deepsecurity_ecs_keys:
         original_keys = deepsecurity_ecs_keys[ecs_key]
-        v = get_value_from_dict(logdata, original_keys)
+        v = value_from_nesteddict_by_dottedkeylist(logdata, original_keys)
         if v:
-            new_ecs_dict = put_value_into_dict(ecs_key, v)
+            new_ecs_dict = put_value_into_nesteddict(ecs_key, v)
             if ".ip" in ecs_key:
                 try:
                     ipaddress.ip_address(v)
                 except ValueError:
                     continue
-            merge(logdata, new_ecs_dict)
+            merge_dicts(logdata, new_ecs_dict)
             del logdata[original_keys]
 
     # source.ipが設定されていなければ、dvcで代用する
