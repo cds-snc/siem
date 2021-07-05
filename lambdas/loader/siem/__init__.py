@@ -733,12 +733,12 @@ class LogParser:
                 error_message = "Invalid file format found during parsing"
                 d = {"__skip_normalization": True, "error": {"message": error_message}}
                 firelens_meta_dict.update(d)
-                logger.warn(f"{error_message} {self.s3key}")
+                logger.warning(f"{error_message} {self.s3key}")
                 return (firelens_meta_dict, False)
         return (logdata, True)
 
     def text_logdata_to_dict(self, logdata):
-        re_log_pattern_prog = self.logconfig["log_pattern"]
+        re_log_pattern_prog = re_log_pattern_prog = self.logconfig["log_pattern"]
         try:
             re_log_pattern_prog = self.logconfig["log_pattern"]
             m = re_log_pattern_prog.match(logdata)
@@ -810,7 +810,7 @@ class LogParser:
             elif isinstance(value, str) and (len(value) >= 32766):
                 if key not in ("@message",):
                     d[key] = d[key][:32753] + "<<TRUNCATED>>"
-                    logger.warn(
+                    logger.warning(
                         f"Data was trauncated because the size of {key} field "
                         f"is bigger than 32,766. _id is {self.doc_id}"
                     )
