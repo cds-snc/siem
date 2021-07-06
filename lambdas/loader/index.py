@@ -130,6 +130,8 @@ def check_es_results(results):
                 error_reason = result["index"].get("error")
                 if error_reason:
                     error_reasons.append(error_reason)
+            else:
+                success += 1
 
     return duration, success, error, error_reasons
 
@@ -269,7 +271,7 @@ def lambda_handler(event, context):
         # S3からファイルを取得してログを抽出する
         logfile = extract_logfile_from_s3(record)
         if logfile.is_ignored:
-            logger.warn(f"Skipped S3 object because {logfile.ignored_reason}")
+            logger.warning(f"Skipped S3 object because {logfile.ignored_reason}")
             continue
 
         # 抽出したログからESにPUTするデータを作成する
@@ -283,7 +285,7 @@ def lambda_handler(event, context):
         )
         # raise error to retry if error has occuered
         if logfile.is_ignored:
-            logger.warn(f"Skipped S3 object because {logfile.ignored_reason}")
+            logger.warning(f"Skipped S3 object because {logfile.ignored_reason}")
         elif collected_metrics["error_count"]:
             error_message = (
                 f"{collected_metrics['error_count']}"
@@ -295,176 +297,4 @@ def lambda_handler(event, context):
         elif collected_metrics["total_log_load_count"] > 0:
             logger.info("All logs were loaded into Amazon ES")
         else:
-            logger.warn("No entries were successed to load")
-
-
-if __name__ == "__main__":
-    import argparse
-    import traceback
-    from datetime import datetime, timezone
-    from functools import partial
-    from multiprocessing import Pool
-
-    print(__version__)
-
-    def check_args():
-        parser = argparse.ArgumentParser(
-            description="es-loader",
-        )
-        group = parser.add_mutually_exclusive_group(required=True)
-        group.add_argument("-b", "--s3bucket", help="s3 bucket where logs are storeed")
-        parser.add_argument(
-            "-l",
-            "--s3list",
-            help=(
-                "s3 object list which you want to load to "
-                "AmazonES. You can create the list by "
-                '"aws s3 ls S3BUCKET --recursive"'
-            ),
-        )
-        group.add_argument("-q", "--sqs", help="SQS queue name of DLQ")
-        args = parser.parse_args()
-        if args.s3bucket:
-            if not args.s3list:
-                print("You neee to provide s3 object list with -l")
-                sys.exit("Exit")
-        return args
-
-    def create_event_from_s3list(s3bucket, s3list):
-        with open(s3list) as f:
-            for num, line_text in enumerate(f.readlines()):
-                try:
-                    dummy, dummy, dummy, s3key = line_text.split()
-                except ValueError:
-                    continue
-                line_num = num + 1
-                s3key = s3key
-                event = {
-                    "Records": [
-                        {"s3": {"bucket": {"name": s3bucket}, "object": {"key": s3key}}}
-                    ]
-                }
-                yield line_num, event, None
-
-    def create_event_from_sqs(queue_name):
-        sqs = boto3.resource("sqs")
-        queue = sqs.get_queue_by_name(QueueName=queue_name)
-        try_list = []
-        while True:
-            messages = queue.receive_messages(
-                MessageAttributeNames=["All"],
-                MaxNumberOfMessages=10,
-                VisibilityTimeout=300,
-                WaitTimeSeconds=1,
-            )
-            if messages:
-                for msg in messages:
-                    if msg.message_id not in try_list:
-                        try_list.append(msg.message_id)
-                        event = json.loads(msg.body)
-                        if "Records" in event:
-                            # from DLQ
-                            pass
-                        else:
-                            # from aes-siem-sqs-splitted-logs
-                            event = {"Records": [json.loads(msg.body)]}
-                        yield msg.message_id, event, msg
-            else:
-                break
-
-    def open_debug_log(outfile):
-        error_log = outfile + ".error.log"
-        error_debug_log = outfile + ".error_debug.log"
-        finish_log = outfile + ".finish.log"
-        f_err = open(error_log, "w")
-        f_err_debug = open(error_debug_log, "w")
-        f_finish = open(finish_log, "w")
-        return f_err, f_err_debug, f_finish
-
-    def close_debug_log(outfile, f_err, f_err_debug, f_finish):
-        error_log = outfile + ".error.log"
-        error_debug_log = outfile + ".error_debug.log"
-        f_err.close()
-        f_err_debug.close()
-        f_finish.close()
-        # print number of error
-        err_count = sum([1 for _ in open(error_log)])
-        if err_count > 0:
-            print(
-                f"{err_count} logs are not loaded to ES. See for details, "
-                f"{error_debug_log}"
-            )
-        else:
-            os.remove(error_debug_log)
-            os.remove(error_log)
-
-    def my_callback(*args, event=None, context=None, sqsmsg=None, f_finish=None):
-        line = context["line"]
-        s3_bucket = event["Records"][0]["s3"]["bucket"]["name"]
-        s3_key = event["Records"][0]["s3"]["object"]["key"]
-        f_finish.write(f"{line}\ts3://{s3_bucket}/{s3_key}\n")
-        f_finish.flush()
-        if sqsmsg:
-            sqsmsg.delete()
-
-    def my_err_callback(*args, event=None, context=None, f_err=None, f_err_debug=None):
-        line = context["line"]
-        s3_bucket = event["Records"][0]["s3"]["bucket"]["name"]
-        s3_key = event["Records"][0]["s3"]["object"]["key"]
-        now = datetime.now(timezone.utc)
-        f_err.write(f"{now}\t{line}\t{s3_key}\n")
-        f_err.flush()
-        f_err_debug.write(f"{line}\ts3://{s3_bucket}/{s3_key}\n")
-        f_err_debug.write(f"{args}\n")
-        f_err_debug.flush()
-
-    ###########################################################################
-    # main logic
-    ###########################################################################
-    print("startting main logic on local shell")
-    args = check_args()
-    if args.s3list:
-        outfile = args.s3list
-        events = create_event_from_s3list(args.s3bucket, args.s3list)
-    elif args.sqs:
-        outfile = args.sqs + datetime.now(timezone.utc).strftime("-%Y%m%d_%H%M%S")
-        events = create_event_from_sqs(args.sqs)
-    else:
-        outfile = None
-        events = {}
-    f_err, f_err_debug, f_finish = open_debug_log(outfile)
-
-    cpu_count = os.cpu_count()
-    with Pool(3 * cpu_count) as pool:
-        results_pool = []
-        for line, event, sqs in events:
-            context = {"line": line}
-            res = pool.apply_async(
-                lambda_handler,
-                (event, context),
-                callback=partial(
-                    my_callback,
-                    event=event,
-                    context=context,
-                    f_finish=f_finish,
-                    sqsmsg=sqs,
-                ),
-                error_callback=partial(
-                    my_err_callback,
-                    event=event,
-                    context=context,
-                    f_err=f_err,
-                    f_err_debug=f_err_debug,
-                ),
-            )
-            try:
-                res.get()
-            except Exception:
-                f_err_debug.write(traceback.format_exc())
-                print(traceback.format_exc())
-
-        pool.close()
-        pool.join()
-
-    close_debug_log(outfile, f_err, f_err_debug, f_finish)
-    print("INFO: Finishaed batch loading")
+            logger.warning("No entries were successed to load")

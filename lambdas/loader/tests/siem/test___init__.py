@@ -1422,7 +1422,7 @@ def test_parser_text_logdata_to_dict_no_match(MockParser):
 
 
 def test_parser_text_logdata_to_dict_match(MockParser):
-    MockParser.logconfig = {"log_pattern": re.compile("(?P<key>\w+)=(?P<value>\w+)")}
+    MockParser.logconfig = {"log_pattern": re.compile(r"(?P<key>\w+)=(?P<value>\w+)")}
     assert MockParser.text_logdata_to_dict("foo=bar") == {"key": "foo", "value": "bar"}
 
 
