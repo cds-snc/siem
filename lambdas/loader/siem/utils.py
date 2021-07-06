@@ -16,7 +16,7 @@ from aws_lambda_powertools import Logger
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 
-__version__ = '2.3.2'
+__version__ = "2.3.2"
 
 logger = Logger(child=True)
 
@@ -25,16 +25,28 @@ logger = Logger(child=True)
 # text utils
 #############################################################################
 # REGEXP
-RE_INSTANCEID = re.compile(r'\W?(?P<instanceid>i-[0-9a-z]{8,17})\W?')
-RE_ACCOUNT = re.compile(r'/([0-9]{12})/')
-RE_REGION = re.compile(
-    r'(global|(us|ap|ca|eu|me|sa|af|cn)-(gov-)?[a-zA-Z]+-[0-9])')
+RE_INSTANCEID = re.compile(r"\W?(?P<instanceid>i-[0-9a-z]{8,17})\W?")
+RE_ACCOUNT = re.compile(r"/([0-9]{12})/")
+RE_REGION = re.compile(r"(global|(us|ap|ca|eu|me|sa|af|cn)-(gov-)?[a-zA-Z]+-[0-9])")
 # for timestamp
-RE_WITH_NANOSECONDS = re.compile(r'(.*)([0-9]{2}\.[0-9]{1,9})(.*)')
-RE_SYSLOG_FORMAT = re.compile(r'([A-Z][a-z]{2})\s+(\d{1,2})\s+'
-                              r'(\d{2}):(\d{2}):(\d{2})(\.(\d{1,6}))?')
-MONTH_TO_INT = {'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
-                'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12}
+RE_WITH_NANOSECONDS = re.compile(r"(.*)([0-9]{2}\.[0-9]{1,9})(.*)")
+RE_SYSLOG_FORMAT = re.compile(
+    r"([A-Z][a-z]{2})\s+(\d{1,2})\s+" r"(\d{2}):(\d{2}):(\d{2})(\.(\d{1,6}))?"
+)
+MONTH_TO_INT = {
+    "Jan": 1,
+    "Feb": 2,
+    "Mar": 3,
+    "Apr": 4,
+    "May": 5,
+    "Jun": 6,
+    "Jul": 7,
+    "Aug": 8,
+    "Sep": 9,
+    "Oct": 10,
+    "Nov": 11,
+    "Dec": 12,
+}
 NOW = datetime.now(timezone.utc)
 TD_OFFSET12 = timedelta(hours=12)
 
@@ -42,7 +54,7 @@ TD_OFFSET12 = timedelta(hours=12)
 def extract_aws_account_from_text(text):
     m = RE_ACCOUNT.search(text)
     if m:
-        return(m.group(1))
+        return m.group(1)
     else:
         return None
 
@@ -50,7 +62,7 @@ def extract_aws_account_from_text(text):
 def extract_aws_region_from_text(text):
     m = RE_REGION.search(text)
     if m:
-        return(m.group(1))
+        return m.group(1)
     else:
         return None
 
@@ -58,42 +70,44 @@ def extract_aws_region_from_text(text):
 def extract_aws_instanceid_from_text(text):
     m = RE_INSTANCEID.search(text)
     if m:
-        return(m.group(1))
+        return m.group(1)
     else:
         return None
 
 
 def cluster_instance_identifier(logdata):
     try:
-        log_group = logdata['@log_group'].split('/')
+        log_group = logdata["@log_group"].split("/")
     except Exception:
-        log_group = [None, None, None, None]
+        log_group = [None, None, None, None, None]
 
-    if 'rds' not in logdata:
-        logdata['rds'] = dict()
+    if "rds" not in logdata:
+        logdata["rds"] = dict()
     identifier = {}
-    identifier['cluster'], identifier['instance'] = (
-        extract_rds_cluster_instance_identifier(
-            log_group[3], log_group[4], logdata['@log_stream']))
+    (
+        identifier["cluster"],
+        identifier["instance"],
+    ) = extract_rds_cluster_instance_identifier(
+        log_group[3], log_group[4], logdata["@log_stream"]
+    )
 
     return identifier
 
 
 @lru_cache(maxsize=1024)
-def extract_rds_cluster_instance_identifier(
-        log_group_3, log_group_4, log_stream):
+def extract_rds_cluster_instance_identifier(log_group_3, log_group_4, log_stream):
     cluster_identifier = None
     instance_identifier = None
-    if log_group_3 in ('instance', ):
+    if log_group_3 in ("instance",):
         # ex)
         # dBInstanceIdentifier = database-1
         instance_identifier = log_group_4
-    elif log_group_3 in ('cluster', ):
+    elif log_group_3 in ("cluster",):
         # ex)
         # dBClusterIdentifier = database-1
         # dBInstanceIdentifier = database-1-instance-1
         cluster_identifier = log_group_4
-        instance_identifier = log_stream.split('.')[0]
+        instance_identifier = log_stream.split(".")[0]
     return cluster_identifier, instance_identifier
 
 
@@ -102,13 +116,13 @@ def convert_underscore_field_into_dot_notation(prefix, logdata):
         return logdata
     if prefix not in logdata:
         logdata[prefix] = dict()
-    prefix_underscore = prefix + '_'
+    prefix_underscore = prefix + "_"
     underscore_fields = []
     for field in logdata:
         if field.startswith(prefix_underscore):
             underscore_fields.append(field)
     for underscore_field in underscore_fields:
-        new_key = underscore_field.replace(prefix_underscore, '')
+        new_key = underscore_field.replace(prefix_underscore, "")
         logdata[prefix][new_key] = logdata[underscore_field]
         del logdata[underscore_field]
     return logdata
@@ -121,14 +135,14 @@ def get_timestr_from_logdata_dict(logdata_dict, timestamp_key, has_nanotime):
     timestr = value_from_nesteddict_by_dottedkey(logdata_dict, timestamp_key)
     # 末尾がZはPythonでは対応していないのでカットしてTZを付与
     try:
-        timestr = timestr.replace('Z', '+00:00')
+        timestr = timestr.replace("Z", "+00:00")
     except AttributeError:
         # int such as epoch
         pass
     if has_nanotime:
         m = RE_WITH_NANOSECONDS.match(timestr)
         if m and m.group(3):
-            microsec = m.group(2)[:9].ljust(6, '0')
+            microsec = m.group(2)[:9].ljust(6, "0")
             timestr = m.group(1) + microsec + m.group(3)
     return timestr
 
@@ -136,15 +150,16 @@ def get_timestr_from_logdata_dict(logdata_dict, timestamp_key, has_nanotime):
 @lru_cache(maxsize=100000)
 def convert_timestr_to_datetime(timestr, timestamp_key, timestamp_format, TZ):
     dt = None
-    if 'epoch' in timestamp_format:
+    if "epoch" in timestamp_format:
         dt = convert_epoch_to_datetime(timestr, TZ)
-    elif 'syslog' in timestamp_format:
+    elif "syslog" in timestamp_format:
         dt = convert_syslog_to_datetime(timestr, TZ)
-    elif 'iso8601' in timestamp_format:
+    elif "iso8601" in timestamp_format:
         dt = convert_iso8601_to_datetime(timestr, TZ, timestamp_key)
     elif timestamp_format:
         dt = convert_custom_timeformat_to_datetime(
-            timestr, TZ, timestamp_format, timestamp_key)
+            timestr, TZ, timestamp_format, timestamp_key
+        )
     return dt
 
 
@@ -168,21 +183,33 @@ def convert_syslog_to_datetime(timestr, TZ):
     m = RE_SYSLOG_FORMAT.match(timestr)
     try:
         # コンマ以下の秒があったら
-        microsec = int(m.group(7).ljust(6, '0'))
+        microsec = int(m.group(7).ljust(6, "0"))
     except AttributeError:
         microsec = 0
     try:
         dt = datetime(
-            year=now.year, month=MONTH_TO_INT[m.group(1)],
-            day=int(m.group(2)), hour=int(m.group(3)), minute=int(m.group(4)),
-            second=int(m.group(5)), microsecond=microsec, tzinfo=TZ)
+            year=now.year,
+            month=MONTH_TO_INT[m.group(1)],
+            day=int(m.group(2)),
+            hour=int(m.group(3)),
+            minute=int(m.group(4)),
+            second=int(m.group(5)),
+            microsecond=microsec,
+            tzinfo=TZ,
+        )
     except ValueError:
         # うるう年対策
         last_year = now.year - 1
         dt = datetime(
-            year=last_year, month=MONTH_TO_INT[m.group(1)],
-            day=int(m.group(2)), hour=int(m.group(3)), minute=int(m.group(4)),
-            second=int(m.group(5)), microsecond=microsec, tzinfo=TZ)
+            year=last_year,
+            month=MONTH_TO_INT[m.group(1)],
+            day=int(m.group(2)),
+            hour=int(m.group(3)),
+            minute=int(m.group(4)),
+            second=int(m.group(5)),
+            microsecond=microsec,
+            tzinfo=TZ,
+        )
     if dt > now:
         # syslog timestamp が未来。マイナス1年の補正が必要
         # know_issue: 1年以上古いログの補正はできない
@@ -196,13 +223,15 @@ def convert_syslog_to_datetime(timestr, TZ):
 
 @lru_cache(maxsize=1024)
 def convert_iso8601_to_datetime(timestr, TZ, timestamp_key):
-    timestr = timestr.replace('+0000', '')
+    timestr = timestr.replace("+0000", "")
     # Python datetime.fromisoformat can't parser +0000 format.
     try:
         dt = datetime.fromisoformat(timestr)
     except ValueError:
-        msg = (f'You set {timestamp_key} field as ISO8601 format. '
-               f'Timestamp string is {timestr} and NOT ISO8601.')
+        msg = (
+            f"You set {timestamp_key} field as ISO8601 format. "
+            f"Timestamp string is {timestr} and NOT ISO8601."
+        )
         logger.exception(msg)
         raise ValueError(msg) from None
     if not dt.tzinfo:
@@ -211,12 +240,11 @@ def convert_iso8601_to_datetime(timestr, TZ, timestamp_key):
 
 
 @lru_cache(maxsize=10000)
-def convert_custom_timeformat_to_datetime(timestr, TZ, timestamp_format,
-                                          timestamp_key):
+def convert_custom_timeformat_to_datetime(timestr, TZ, timestamp_format, timestamp_key):
     try:
         dt = datetime.strptime(timestr, timestamp_format)
     except ValueError:
-        msg = f'timestamp key {timestamp_key} is wrong'
+        msg = f"timestamp key {timestamp_key} is wrong"
         logger.exception(msg)
         raise ValueError(msg) from None
     if not dt.tzinfo:
@@ -229,49 +257,51 @@ def convert_custom_timeformat_to_datetime(timestr, TZ, timestamp_format,
 #############################################################################
 def get_es_hostname():
     # get ES_ENDPOINT
-    if 'ES_ENDPOINT' in os.environ:
-        es_hostname = os.environ.get('ES_ENDPOINT', '')
+    if "ES_ENDPOINT" in os.environ:
+        es_hostname = os.environ.get("ES_ENDPOINT", "")
     else:
         # For local shell execution
         aes_config = configparser.ConfigParser(
-            interpolation=configparser.ExtendedInterpolation())
-        aes_config.read('aes.ini')
+            interpolation=configparser.ExtendedInterpolation()
+        )
+        aes_config.read("aes.ini")
         aes_config.sections()
-        if 'aes' in aes_config:
-            es_hostname = aes_config['aes']['es_endpoint']
+        if "aes" in aes_config:
+            es_hostname = aes_config["aes"]["es_endpoint"]
         else:
-            logger.error('You need to set ES_ENDPOINT in ENVRIONMENT '
-                         'or modify aes.ini. exit')
-            raise Exception('No ES_ENDPOINT in Environemnt')
+            logger.error(
+                "You need to set ES_ENDPOINT in ENVRIONMENT " "or modify aes.ini. exit"
+            )
+            raise Exception("No ES_ENDPOINT in Environemnt")
     return es_hostname
 
 
 def create_logtype_s3key_dict(etl_config):
     logtype_s3key_dict = {}
     for logtype in etl_config.sections():
-        logtype_s3key_dict[logtype] = re.compile(etl_config[logtype]['s3_key'])
+        logtype_s3key_dict[logtype] = re.compile(etl_config[logtype]["s3_key"])
     return logtype_s3key_dict
 
 
 def get_logtype_from_s3key(s3key, logtype_s3key_dict):
-    if s3key[-1] == '/':
-        return 'nodata'
+    if s3key[-1] == "/":
+        return "nodata"
     for logtype, re_s3key in logtype_s3key_dict.items():
         m = re_s3key.search(s3key)
         if m:
             return logtype
-    return 'unknown'
+    return "unknown"
 
 
 def sqs_queue(queue_url):
     if not queue_url:
         return None
     try:
-        sqs_resource = boto3.resource('sqs', endpoint_url=queue_url)
+        sqs_resource = boto3.resource("sqs", endpoint_url=queue_url)
         sqs_queue = sqs_resource.Queue(queue_url)
     except Exception:
-        logger.exception(f'impossible to connect SQS {queue_url}')
-        raise Exception(f'impossible to connect SQS {queue_url}') from None
+        logger.exception(f"impossible to connect SQS {queue_url}")
+        raise Exception(f"impossible to connect SQS {queue_url}") from None
     return sqs_queue
 
 
@@ -279,88 +309,100 @@ def sqs_queue(queue_url):
 # Lambda initialization
 #############################################################################
 def initialize_es_connection(es_hostname):
-    es_region = es_hostname.split('.')[1]
+    es_region = es_hostname.split(".")[1]
     # For Debug
     # boto3.set_stream_logger('botocore', level='DEBUG')
     credentials = boto3.Session().get_credentials()
-    service = 'es'
+    service = "es"
     awsauth = AWS4Auth(
-        credentials.access_key, credentials.secret_key, es_region, service,
-        session_token=credentials.token)
+        credentials.access_key,
+        credentials.secret_key,
+        es_region,
+        service,
+        session_token=credentials.token,
+    )
     es_conn = Elasticsearch(
-        hosts=[{'host': es_hostname, 'port': 443}], http_auth=awsauth,
-        use_ssl=True, http_compress=True, verify_certs=True,
-        retry_on_timeout=True, connection_class=RequestsHttpConnection,
-        timeout=60)
+        hosts=[{"host": es_hostname, "port": 443}],
+        http_auth=awsauth,
+        use_ssl=True,
+        http_compress=True,
+        verify_certs=True,
+        retry_on_timeout=True,
+        connection_class=RequestsHttpConnection,
+        timeout=60,
+    )
     return es_conn
 
 
 def find_user_custom_libs():
     # /opt is mounted by lambda layer
     user_libs = []
-    if os.path.isdir('/opt/siem'):
-        user_libs = [i for i in os.listdir('/opt/siem/') if 'sf_' in i]
-        sys.path.append('/opt/siem')
+    if os.path.isdir("/opt/siem"):
+        user_libs = [i for i in os.listdir("/opt/siem/") if "sf_" in i]
+        sys.path.append("/opt/siem")
     return user_libs
 
 
 @lru_cache(maxsize=128)
 def timestr_to_hours(timestr):
     try:
-        hours, minutes = timestr.split(':')
+        hours, minutes = timestr.split(":")
         hours = int(hours) + int(minutes) / 60
     except ValueError:
         hours = timestr
     except Exception:
-        logger.exception(f'impossible to convert {timestr} to hours')
-        raise Exception(f'impossible to convert {timestr} to hours') from None
+        logger.exception(f"impossible to convert {timestr} to hours")
+        raise Exception(f"impossible to convert {timestr} to hours") from None
     return str(hours)
 
 
 def get_etl_config():
     etl_config = configparser.ConfigParser(
-        interpolation=configparser.ExtendedInterpolation())
-    etl_config.read('aws.ini')
+        interpolation=configparser.ExtendedInterpolation()
+    )
+    etl_config.read("aws.ini")
     # overwride with user configration
-    etl_config.read('/opt/user.ini')
-    etl_config.read('user.ini')
+    etl_config.read("/opt/user.ini")
+    etl_config.read("user.ini")
     etl_config.sections()
-    if 'doc_id' not in etl_config['DEFAULT']:
-        logger.error('invalid config file: aws.ini. exit')
-        raise Exception('invalid config file: aws.ini. exit')
+    if "doc_id" not in etl_config["DEFAULT"]:
+        logger.error("invalid config file: aws.ini. exit")
+        raise Exception("invalid config file: aws.ini. exit")
     for each_config in etl_config:
-        etl_config[each_config]['index_tz'] = timestr_to_hours(
-            etl_config[each_config]['index_tz'])
-        etl_config[each_config]['timestamp_tz'] = timestr_to_hours(
-            etl_config[each_config]['timestamp_tz'])
+        etl_config[each_config]["index_tz"] = timestr_to_hours(
+            etl_config[each_config]["index_tz"]
+        )
+        etl_config[each_config]["timestamp_tz"] = timestr_to_hours(
+            etl_config[each_config]["timestamp_tz"]
+        )
     return etl_config
 
 
 def load_modules_on_memory(etl_config, user_libs):
     for logtype in etl_config:
-        if etl_config[logtype].get('script_ecs'):
-            mod_name = 'sf_' + logtype.replace('-', '_')
+        if etl_config[logtype].get("script_ecs"):
+            mod_name = "sf_" + logtype.replace("-", "_")
             # old_mod_name is for compatibility
-            old_mod_name = 'sf_' + logtype
-            if mod_name + '.py' in user_libs:
+            old_mod_name = "sf_" + logtype
+            if mod_name + ".py" in user_libs:
                 importlib.import_module(mod_name)
-            elif old_mod_name + '.py' in user_libs:
+            elif old_mod_name + ".py" in user_libs:
                 importlib.import_module(mod_name)
             else:
-                importlib.import_module('siem.' + mod_name)
+                importlib.import_module("siem." + mod_name)
 
 
 def load_sf_module(logfile, logconfig, user_libs_list):
-    if logconfig['script_ecs']:
-        mod_name = 'sf_' + logfile.logtype.replace('-', '_')
+    if "script_ecs" in logconfig:
+        mod_name = "sf_" + logfile.logtype.replace("-", "_")
         # old_mod_name is for compatibility
-        old_mod_name = 'sf_' + logfile.logtype
-        if mod_name + '.py' in user_libs_list:
+        old_mod_name = "sf_" + logfile.logtype
+        if mod_name + ".py" in user_libs_list:
             sf_module = importlib.import_module(mod_name)
-        elif old_mod_name + '.py' in user_libs_list:
+        elif old_mod_name + ".py" in user_libs_list:
             sf_module = importlib.import_module(old_mod_name)
         else:
-            sf_module = importlib.import_module('siem.' + mod_name)
+            sf_module = importlib.import_module("siem." + mod_name)
     else:
         sf_module = None
     return sf_module
@@ -368,34 +410,35 @@ def load_sf_module(logfile, logconfig, user_libs_list):
 
 def make_exclude_own_log_patterns(etl_config):
     log_patterns = {}
-    if etl_config['DEFAULT'].getboolean('ignore_own_logs'):
-        user_agent = etl_config['DEFAULT'].get('custom_user_agent', '')
+    if etl_config["DEFAULT"].getboolean("ignore_own_logs"):
+        user_agent = etl_config["DEFAULT"].get("custom_user_agent", "")
         if user_agent:
-            re_user_agent = re.compile('.*' + re.escape(user_agent) + '.*')
-            log_patterns['cloudtrail'] = {'userAgent': re_user_agent}
-            log_patterns['s3accesslog'] = {'UserAgent': re_user_agent}
+            re_user_agent = re.compile(".*" + re.escape(user_agent) + ".*")
+            log_patterns["cloudtrail"] = {"userAgent": re_user_agent}
+            log_patterns["s3accesslog"] = {"UserAgent": re_user_agent}
     return log_patterns
 
 
 def get_exclude_log_patterns_csv_filename(etl_config):
-    csv_filename = etl_config['DEFAULT'].get('exclude_log_patterns_filename')
+    csv_filename = etl_config["DEFAULT"].get("exclude_log_patterns_filename")
     if not csv_filename:
         return None
-    if 'GEOIP_BUCKET' in os.environ:
-        geoipbucket = os.environ.get('GEOIP_BUCKET', '')
+    if "GEOIP_BUCKET" in os.environ:
+        geoipbucket = os.environ.get("GEOIP_BUCKET", "")
     else:
         config = configparser.ConfigParser(
-            interpolation=configparser.ExtendedInterpolation())
-        config.read('aes.ini')
+            interpolation=configparser.ExtendedInterpolation()
+        )
+        config.read("aes.ini")
         config.sections()
-        if 'aes' in config:
-            geoipbucket = config['aes']['GEOIP_BUCKET']
+        if "aes" in config:
+            geoipbucket = config["aes"]["GEOIP_BUCKET"]
         else:
             return None
-    s3geo = boto3.resource('s3')
+    s3geo = boto3.resource("s3")
     bucket = s3geo.Bucket(geoipbucket)
     s3obj = csv_filename
-    local_file = f'/tmp/{csv_filename}'
+    local_file = f"/tmp/{csv_filename}"
     try:
         bucket.download_file(s3obj, local_file)
     except Exception:
@@ -407,7 +450,7 @@ def merge_dotted_key_value_into_dict(patterns_dict, dotted_key, value):
     if not patterns_dict:
         patterns_dict = {}
     patterns_dict_temp = patterns_dict
-    key_list = dotted_key.split('.')
+    key_list = dotted_key.split(".")
     for key in key_list[:-1]:
         patterns_dict_temp = patterns_dict_temp.setdefault(key, {})
     patterns_dict_temp[key_list[-1]] = value
@@ -416,58 +459,57 @@ def merge_dotted_key_value_into_dict(patterns_dict, dotted_key, value):
 
 def merge_csv_into_log_patterns(log_patterns, csv_filename):
     if not csv_filename:
-        logger.info(f'{log_patterns}')
+        logger.info(f"{log_patterns}")
         return log_patterns
-    logger.info(f'{csv_filename} is imported to exclude_log_patterns')
-    with open(csv_filename, 'rt') as f:
+    logger.info(f"{csv_filename} is imported to exclude_log_patterns")
+    with open(csv_filename, "rt") as f:
         for line in csv.DictReader(f):
-            if line['pattern_type'].lower() == 'text':
-                pattern = re.compile(str(re.escape(line['pattern'])) + '$')
+            if line["pattern_type"].lower() == "text":
+                pattern = re.compile(str(re.escape(line["pattern"])) + "$")
             else:
-                pattern = re.compile(str(line['pattern']) + '$')
-            log_patterns.setdefault(line['log_type'], {})
-            log_patterns[line['log_type']] = merge_dotted_key_value_into_dict(
-                log_patterns[line['log_type']],
-                line['field'], pattern)
-    logger.info(f'{log_patterns}')
+                pattern = re.compile(str(line["pattern"]) + "$")
+            log_patterns.setdefault(line["log_type"], {})
+            log_patterns[line["log_type"]] = merge_dotted_key_value_into_dict(
+                log_patterns[line["log_type"]], line["field"], pattern
+            )
+    logger.info(f"{log_patterns}")
     return log_patterns
 
 
 def make_s3_session_config(etl_config):
-    user_agent = etl_config['DEFAULT'].get('custom_user_agent', '')
-    user_agent_ver = etl_config['DEFAULT'].get('custom_user_agent_ver', '')
+    user_agent = etl_config["DEFAULT"].get("custom_user_agent", "")
+    user_agent_ver = etl_config["DEFAULT"].get("custom_user_agent_ver", "")
     if user_agent:
         s3_session_config = botocore.config.Config(
-            user_agent=f'{user_agent}/{user_agent_ver}')
+            user_agent=f"{user_agent}/{user_agent_ver}"
+        )
     else:
         s3_session_config = None
     return s3_session_config
 
 
 def show_local_dir():
-    target_dirname = ['/tmp', '/opt', '/opt/siem']
+    target_dirname = ["/tmp", "/opt", "/opt/siem"]
     for dirname in target_dirname:
         if os.path.isdir(dirname):
-            logger.info({'directory': dirname,
-                         'files': str(os.listdir(path=dirname))})
+            logger.info({"directory": dirname, "files": str(os.listdir(path=dirname))})
 
 
 #############################################################################
 # log utils
 #############################################################################
 def get_mime_type(data):
-    if data.startswith(b'\x1f\x8b'):
-        return 'gzip'
-    elif data.startswith(b'\x50\x4b'):
-        return 'zip'
-    elif data.startswith(b'\x42\x5a'):
-        return 'bzip2'
-    textchars = bytearray(
-        {7, 8, 9, 10, 12, 13, 27} | set(range(0x20, 0x100)) - {0x7f})
+    if data.startswith(b"\x1f\x8b"):
+        return "gzip"
+    elif data.startswith(b"\x50\x4b"):
+        return "zip"
+    elif data.startswith(b"\x42\x5a"):
+        return "bzip2"
+    textchars = bytearray({7, 8, 9, 10, 12, 13, 27} | set(range(0x20, 0x100)) - {0x7F})
     if bool(data.translate(None, textchars)):
-        return 'binary'
+        return "binary"
     else:
-        return 'text'
+        return "text"
 
 
 def value_from_nesteddict_by_dottedkey(nested_dict, dotted_key):
@@ -491,13 +533,13 @@ def value_from_nesteddict_by_dottedkey(nested_dict, dotted_key):
     123
     """
     value = nested_dict
-    for key in dotted_key.split('.'):
+    for key in dotted_key.split("."):
         if key.isdigit():
             key = int(key)
         try:
             value = value[key]
         except (TypeError, KeyError, IndexError):
-            value = ''
+            value = ""
             break
     if value:
         return value
@@ -554,7 +596,7 @@ def put_value_into_nesteddict(dotted_key, value):
     else:
         value = str(value)
     nested_dict = {}
-    keys, current = dotted_key.split('.'), nested_dict
+    keys, current = dotted_key.split("."), nested_dict
     for p in keys[:-1]:
         current[p] = {}
         current = current[p]
@@ -571,8 +613,8 @@ def convert_keyname_to_safe_field(obj):
     if isinstance(obj, dict):
         for org_key in list(obj.keys()):
             new_key = org_key
-            if '-' in org_key:
-                new_key = org_key.translate({ord('-'): ord('_')})
+            if "-" in org_key:
+                new_key = org_key.translate({ord("-"): ord("_")})
                 obj[new_key] = obj.pop(org_key)
             convert_keyname_to_safe_field(obj[new_key])
     elif isinstance(obj, list):
@@ -625,15 +667,16 @@ def match_log_with_exclude_patterns(log_dict, log_patterns, ex_pattern=None):
         if key in log_dict:
             if isinstance(pattern, dict) and isinstance(log_dict[key], dict):
                 res, ex_pattern = match_log_with_exclude_patterns(
-                    log_dict[key], pattern)
-                return(res, ex_pattern)
+                    log_dict[key], pattern
+                )
+                return (res, ex_pattern)
             elif isinstance(pattern, re.Pattern):
                 if isinstance(log_dict[key], list):
-                    return(False, None)
+                    return (False, None)
                 elif pattern.match(str(log_dict[key])):
-                    ex_pattern = '{{{0}: {1}}}'.format(key, log_dict[key])
-                    return(True, ex_pattern)
-    return(False, None)
+                    ex_pattern = "{{{0}: {1}}}".format(key, log_dict[key])
+                    return (True, ex_pattern)
+    return (False, None)
 
 
 def merge_dicts(dicta, dictb, path=None):
