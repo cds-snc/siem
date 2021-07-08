@@ -11,7 +11,8 @@ lint:
 	pylint lambda_function.py
 
 test:
-	python -m pytest -s -vv tests
+	coverage run -m pytest -s -vv tests &&\
+	coverage report -m
 
 .PHONY: \
 	fmt \

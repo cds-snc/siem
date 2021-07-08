@@ -2,7 +2,7 @@ resource "aws_lambda_function" "loader" {
   function_name = "loader"
 
   package_type = "Image"
-  image_uri    = "${aws_ecr_repository.loader.repository_url}:7fed769d3e63180d3aeb9fe041b1611cafe10718"
+  image_uri    = "${aws_ecr_repository.loader.repository_url}:071ac9e042945f33311df78cddbf7373c80fe067"
 
   timeout = 900
 
