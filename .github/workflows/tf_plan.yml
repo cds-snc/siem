@@ -53,8 +53,8 @@ jobs:
 
       - name: Terraform plan
         uses: cds-snc/terraform-plan@bb7ceaff3d36876e188893e284d8650a5c3935ca
-        working-directory: ./terragrunt/${{ matrix.module }}
         with:
-          comment-delete: true	
+          comment-delete: true
+          directory: ./terragrunt/${{ matrix.module }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           terragrunt: true
