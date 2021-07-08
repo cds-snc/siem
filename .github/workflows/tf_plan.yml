@@ -38,38 +38,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - uses: dorny/paths-filter@v2.2.1
-        id: filter
-        with:
-          filters: |
-            module:
-              - 'aws/${{ matrix.module }}/**'
-              - 'terragrunt/${{ matrix.module }}/**'
-
       - name: Setup Terraform
-        if: ${{ steps.filter.outputs.module == 'true' }}
         uses: hashicorp/setup-terraform@v1.2.1
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
           terraform_wrapper: false
 
       - name: Setup Terragrunt
-        if: ${{ steps.filter.outputs.module == 'true' }}
         run: |
           mkdir bin
           wget -O bin/terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/$TERRAGRUNT_VERSION/terragrunt_linux_amd64
           chmod +x bin/*
           echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
 
-      - name: Check Formatting
-        if: ${{ steps.filter.outputs.module == 'true' }}
-        id: fmt
-        working-directory: ./aws/${{ matrix.module }}
-        run: terraform fmt
-        continue-on-error: true
-
-      - name: Terragrunt plan
-        if: ${{ steps.filter.outputs.module == 'true' }}
-        id: plan
-        working-directory: ./terragrunt/${{ matrix.module }}
-        run: terragrunt plan --terragrunt-non-interactive -no-color
+      - name: Terraform plan
+        uses: cds-snc/terraform-plan@bb7ceaff3d36876e188893e284d8650a5c3935ca
+        with:
+          comment-delete: true
+          comment-title: Plan for ${{ matrix.module }}
+          directory: ./terragrunt/${{ matrix.module }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          terragrunt: true

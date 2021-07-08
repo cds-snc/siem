@@ -12,7 +12,8 @@ lint:
 	echo "Skipping lint"
 
 test:
-	python -m pytest -s -vv tests
+	coverage run -m pytest -s -vv tests &&\
+	coverage report -m
 
 .PHONY: \
 	fmt \
