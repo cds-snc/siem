@@ -34,7 +34,7 @@ provider "aws" {
   region              = "ca-central-1"
   allowed_account_ids = ["${local.security_account}"]
   assume_role {
-    role_arn     = "arn:aws:iam::${local.security_account}:role/cds-siem"
+    role_arn = "arn:aws:iam::${local.security_account}:role/cds-siem"
   }
 }
 
@@ -43,7 +43,7 @@ provider "aws" {
   region              = "ca-central-1"
   allowed_account_ids = ["${local.logging_account}"]
   assume_role {
-    role_arn     = "arn:aws:iam::${local.logging_account}:role/cds-siem"
+    role_arn = "arn:aws:iam::${local.logging_account}:role/cds-siem"
   }
 }
 EOF
@@ -53,27 +53,27 @@ generate "common_variables" {
   path      = "common_variables.tf"
   if_exists = "overwrite"
   contents  = <<EOF
-variable account_id {
+variable "account_id" {
   description = "(Required) The account ID to perform actions on."
   type        = string
 }
 
-variable caller_arn {
+variable "caller_arn" {
   description = "(Required) The caller's ARN."
   type        = string
 }
 
-variable env {
+variable "env" {
   description = "The current running environment"
   type        = string
 }
 
-variable product_name {
+variable "product_name" {
   description = "(Required) The name of the product you are deploying."
   type        = string
 }
 
-variable region {
+variable "region" {
   description = "The current AWS region"
   type        = string
 }
